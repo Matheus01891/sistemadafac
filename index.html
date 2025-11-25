@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TB | Galaxy Rewards V48</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap');
+        
+        body { 
+            font-family: 'Montserrat', sans-serif; 
+            background-color: #050505; 
+            color: #e5e7eb; 
+            /* BANNER CORRIGIDO + FILTRO ESCURO */
+            background-image: 
+                linear-gradient(rgba(0,0,0,0.92), rgba(0,0,0,0.95)),
+                url('https://i.postimg.cc/63NWrLF8/8d054157-cfa3-4d6e-b355-709c3b677c07.jpg');
+            background-size: cover; 
+            background-position: center;
+            background-attachment: fixed;
+            overflow: hidden;
+        }
+
+        /* MODO PÂNICO (DISFARCE) */
+        #panic-screen {
+            display: none; position: fixed; inset: 0; background: #fff; z-index: 9999;
+            color: #333; font-family: sans-serif; flex-direction: column; 
+            align-items: center; justify-content: center; text-align: center;
+        }
+
+        /* ANIMAÇÕES */
+        @keyframes float { 0% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-6px) rotate(2deg); } 100% { transform: translateY(0px) rotate(0deg); } }
+        .mascot-3d { animation: float 5s ease-in-out infinite; filter: drop-shadow(0 0 15px rgba(220, 38, 38, 0.3)); cursor: pointer; transition: transform 0.3s; }
+        .mascot-3d:hover { transform: scale(1.1); }
+        
+        /* OVERLAY INICIAL */
+        #startOverlay { position: fixed; inset: 0; background: #000; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .btn-start {
+            background: transparent; border: 2px solid #dc2626; color: #dc2626; padding: 15px 50px;
+            font-weight: 900; font-size: 1.2rem; text-transform: uppercase; cursor: pointer; transition: 0.3s;
+            box-shadow: 0 0 20px rgba(220, 38, 38, 0.2); clip-path: polygon(10% 0, 100% 0, 100% 80%, 90% 100%, 0 100%, 0 20%);
+        }
+        .btn-start:hover { background: #dc2626; color: white; box-shadow: 0 0 50px rgba(220, 38, 38, 0.6); transform: scale(1.05); }
+
+        .faction-logo {
+            width: 180px; height: 180px; object-fit: contain;
+            filter: drop-shadow(0 0 20px rgba(220, 38, 38, 0.6));
+            margin-bottom: 20px; animation: float 6s ease-in-out infinite;
+        }
+
+        /* UI ELEMENTS */
+        .card-dark { background: rgba(20, 20, 24, 0.95); border: 1px solid #30363d; border-radius: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.9); backdrop-filter: blur(10px); }
+        
+        .btn-red { 
+            background: linear-gradient(135deg, #991b1b, #dc2626); color: white; border: none; 
+            border-radius: 8px; transition: 0.2s; box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
+            font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
+        }
+        .btn-red:active { transform: scale(0.98); }
+
+        input, select { 
+            background-color: #0a0a0a !important; border: 1px solid #333 !important; color: #fff !important; 
+            border-radius: 8px; font-weight: bold; text-transform: uppercase; transition: 0.3s;
+        }
+        input:focus, select:focus { border-color: #dc2626 !important; outline: none; box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1); }
+
+        /* TABELA DE CRAFTING */
+        .craft-row { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #333; font-size: 11px; }
+        .craft-row:last-child { border: none; }
+
+        /* STATUS BAR */
+        .status-bar { height: 3px; width: 100%; background: #333; position: absolute; bottom: 0; transition: 0.5s; }
+        .status-bar.online { background: #22c55e; box-shadow: 0 0 20px #22c55e; }
+        .status-bar.offline { background: #ef4444; box-shadow: 0 0 20px #ef4444; }
+
+        /* PASTAS */
+        details { margin-bottom: 8px; overflow: hidden; border-radius: 8px; border: 1px solid #333; background: #111; transition: 0.3s; }
+        details[open] { border-color: #dc2626; background: #1a1a1a; }
+        details > summary { list-style: none; cursor: pointer; padding: 12px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; transition: 0.2s; }
+        details > summary:hover { background: #222; }
+        details > summary::-webkit-details-marker { display: none; }
+
+        /* SCROLL */
+        .custom-scroll::-webkit-scrollbar { width: 5px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #dc2626; border-radius: 10px; }
+
+        #yt-player { position: absolute; top: -9999px; left: -9999px; }
+    </style>
+</head>
+<body class="flex flex-col h-screen">
+
+    <!-- TELA DE PÂNICO -->
+    <div id="panic-screen">
+        <img src="https://www.gstatic.com/youtube/img/branding/youtubelogo/svg/youtubelogo.svg" alt="YouTube" style="width: 150px; margin-bottom: 20px; opacity: 0.5;">
+        <h1 style="font-size: 24px; color: #555;">500 Internal Server Error</h1>
+        <p style="color: #888;">Sorry, something went wrong.</p>
+        <p style="font-size: 12px; color: #aaa; margin-top: 50px;">A team of highly trained monkeys has been dispatched to deal with this situation.</p>
+    </div>
+
+    <!-- SOM -->
+    <audio id="sfx-register" src="https://www.myinstants.com/media/sounds/cha-ching-register.mp3"></audio>
+    <div id="yt-player"></div>
+
+    <!-- TELA START -->
+    <div id="startOverlay">
+        <img src="https://i.postimg.cc/63NWrLF8/8d054157-cfa3-4d6e-b355-709c3b677c07.jpg" class="faction-logo rounded-full border-4 border-red-900" alt="Logo TB">
+        <h1 class="text-5xl font-black text-white mb-1 tracking-tighter">TURMA DO <span class="text-red-600">BAIRRO</span></h1>
+        <p class="text-gray-500 text-[10px] tracking-[0.6em] uppercase mb-8">SISTEMA V48 | GESTÃO</p>
+        <button class="btn-start" onclick="iniciarSistema()">
+            <i class="fa-solid fa-play mr-2"></i> INICIAR
+        </button>
+    </div>
+
+    <!-- HEADER -->
+    <header class="h-20 bg-[#0a0a0a]/90 border-b border-red-900/20 flex items-center justify-between px-6 shrink-0 relative z-20 backdrop-blur-md">
+        <div class="flex items-center gap-4">
+            <div class="relative">
+                <div class="absolute inset-0 bg-red-600 blur-lg opacity-20 rounded-full"></div>
+                <img src="https://media.tenor.com/u9yK8t-JpE0AAAAi/cute-dog.gif" class="w-12 h-12 rounded-full border-2 border-red-600 mascot-3d relative z-10" alt="Pitbull 3D">
+            </div>
+            <div>
+                <h1 class="font-black text-xl text-white leading-none tracking-tight">SISTEMA <span class="text-red-600">TB</span></h1>
+                <p id="statusText" class="text-[9px] font-bold text-gray-500 flex items-center gap-1.5 mt-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-gray-500"></span> OFFLINE
+                </p>
+            </div>
+        </div>
+        
+        <div class="flex items-center gap-4">
+            <!-- BOTÃO PÂNICO -->
+            <button onclick="togglePanic()" class="bg-red-900/50 hover:bg-red-600 text-white w-9 h-9 rounded-full flex items-center justify-center transition" title="Modo Disfarce (F9)">
+                <i class="fa-solid fa-eye-slash"></i>
+            </button>
+
+            <div class="bg-black/40 px-3 py-1.5 rounded-full border border-white/5 flex items-center gap-3">
+                <button onclick="toggleMusic()" id="btnMusic" class="text-gray-400 hover:text-white transition text-xs"><i class="fa-solid fa-pause"></i></button>
+                <input type="range" min="0" max="100" value="40" class="w-16 h-1 bg-gray-700 rounded cursor-pointer accent-red-600" oninput="setVolume(this.value)">
+            </div>
+            
+            <button onclick="sairDoSistema()" id="btnLogout" class="hidden text-red-500 hover:text-white text-xs font-bold" title="Sair">
+                SAIR
+            </button>
+        </div>
+        <div id="statusBar" class="status-bar offline"></div>
+    </header>
+
+    <!-- NAV -->
+    <nav id="navBar" class="hidden bg-[#050505] p-2 gap-2 justify-center border-b border-gray-800 shrink-0 overflow-x-auto">
+        <button onclick="nav('vendas')" id="nav-vendas" class="nav-btn bg-red-600 text-white"><i class="fa-solid fa-sack-dollar mr-1"></i> Vendas</button>
+        <button onclick="nav('craft')" id="nav-craft" class="nav-btn bg-[#111] text-gray-400"><i class="fa-solid fa-hammer mr-1"></i> Craft</button>
+        <button onclick="nav('metas')" id="nav-metas" class="nav-btn bg-[#111] text-gray-400"><i class="fa-solid fa-bullseye mr-1"></i> Metas</button>
+        <button onclick="nav('logs')" id="nav-logs" class="hidden nav-btn bg-[#111] text-gray-400"><i class="fa-solid fa-folder-tree mr-1"></i> Logs</button>
+        <button onclick="nav('audit')" id="nav-audit" class="hidden nav-btn bg-[#111] text-gray-400"><i class="fa-solid fa-shield-halved mr-1"></i> Auditoria</button>
+    </nav>
+
+    <style>.nav-btn { padding: 8px 20px; border-radius: 99px; font-weight: 900; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; white-space: nowrap; }</style>
+
+    <!-- CONTEÚDO -->
+    <main class="flex-grow overflow-y-auto p-4 custom-scroll relative">
+
+        <!-- LOGIN -->
+        <div id="screen-login" class="max-w-sm mx-auto mt-10 fade-in">
+            <div class="card-dark p-8 border-t-4 border-red-600 text-center relative">
+                <i class="fa-solid fa-user-lock text-3xl text-red-600 mb-4"></i>
+                <h3 class="font-black text-white text-xl mb-1">IDENTIFICAÇÃO</h3>
+                <p class="text-gray-500 text-xs mb-6">Acesso restrito à facção</p>
+
+                <div class="flex gap-2 mb-6 bg-black/40 p-1 rounded-lg">
+                    <button onclick="setLoginMode('membro')" id="btnModeMembro" class="flex-1 py-2 text-[10px] font-bold rounded bg-red-600 text-white">MEMBRO</button>
+                    <button onclick="setLoginMode('lider')" id="btnModeLider" class="flex-1 py-2 text-[10px] font-bold rounded text-gray-500 hover:text-white">LÍDER</button>
+                </div>
+                
+                <div id="formMembro">
+                    <input type="text" id="loginName" placeholder="SEU VULGO" class="w-full p-3.5 mb-3 text-center text-sm bg-black/50 border-gray-700">
+                    <input type="number" id="loginID" placeholder="SEU ID" class="w-full p-3.5 mb-6 text-center text-sm bg-black/50 border-gray-700">
+                    <button onclick="fazerLoginMembro()" class="btn-red w-full py-4 shadow-lg text-xs tracking-widest">ENTRAR</button>
+                </div>
+
+                <div id="formLider" class="hidden">
+                    <input type="password" id="adminPass" placeholder="SENHA DO LÍDER" class="w-full p-3.5 mb-6 text-center text-sm bg-black/50 border-gray-700">
+                    <button onclick="fazerLoginLider()" class="btn-red w-full py-4 shadow-lg text-xs tracking-widest">ACESSAR GERÊNCIA</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ABA VENDAS -->
+        <div id="tab-vendas" class="hidden max-w-md mx-auto fade-in pb-10">
+            <div id="screen-closed" class="flex flex-col items-center justify-center py-20 text-center">
+                <i class="fa-solid fa-shop-lock text-5xl text-gray-700 mb-4"></i>
+                <h2 class="text-2xl font-black text-white mb-2">LOJA FECHADA</h2>
+                <p class="text-gray-500 text-xs px-10">Aguarde o Líder liberar o sistema.</p>
+                
+                <div id="adminControls" class="hidden mt-8 w-full max-w-xs">
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="setLoja(true)" class="py-3 rounded bg-green-600 text-white font-bold text-[10px] uppercase shadow-lg">Abrir Loja</button>
+                        <button onclick="setLoja(false)" class="py-3 rounded bg-red-900 text-red-200 font-bold text-[10px] uppercase border border-red-800">Fechar</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="screen-sales" class="hidden card-dark p-6 border-t-4 border-red-600 relative overflow-hidden">
+                <div class="flex justify-between items-start mb-6 border-b border-gray-800/50 pb-4">
+                    <div><p class="text-[9px] text-red-500 font-bold uppercase mb-1">Vendedor</p><h2 class="text-white font-black text-2xl" id="displayVendedor">...</h2></div>
+                    <div class="text-right"><p class="text-[9px] text-gray-500 font-bold uppercase">ID</p><p class="text-gray-300 font-mono text-sm" id="displayID">...</p></div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 mb-5">
+                    <button onclick="setParceria(true)" id="btnParceriaSim" class="py-2.5 rounded text-[10px] font-bold bg-red-600 text-white">COM PARCERIA</button>
+                    <button onclick="setParceria(false)" id="btnParceriaNao" class="py-2.5 rounded text-[10px] font-bold text-gray-500 bg-black/40">SEM PARCERIA</button>
+                </div>
+
+                <div class="space-y-4">
+                    <select id="iptItem" class="w-full p-3.5 text-sm font-bold bg-[#0a0a0a]" onchange="calc()"></select>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="col-span-2"><input type="number" id="iptQtd" value="1" min="1" class="w-full p-3.5 text-center font-bold text-white" oninput="calc()"></div>
+                        <div><input type="text" id="iptUnit" class="w-full p-3.5 text-center font-mono text-gray-500 text-xs bg-black/20 border-gray-800" readonly></div>
+                    </div>
+                </div>
+
+                <div class="mt-6 bg-black/40 p-4 rounded-lg border border-white/5">
+                    <div class="flex justify-between items-center mb-2"><span class="text-[10px] font-bold text-gray-400 uppercase">Total</span><span id="valTotal" class="text-2xl font-black text-white">$0</span></div>
+                    <div class="flex justify-between text-xs pt-2 border-t border-gray-800">
+                        <span class="text-red-400 font-bold">Baú: <span id="valBau">$0</span></span>
+                        <span class="text-green-400 font-bold">Lucro: <span id="valLucro">$0</span></span>
+                    </div>
+                </div>
+
+                <button onclick="confirmarVenda()" id="btnConfirm" class="btn-red w-full py-4 mt-6 text-sm shadow-lg tracking-widest font-black">REGISTRAR</button>
+            </div>
+        </div>
+
+        <!-- ABA CRAFTING (CALCULADORA DE ITENS) -->
+        <div id="tab-craft" class="hidden max-w-md mx-auto fade-in">
+            <div class="card-dark p-6 border-t-4 border-yellow-500">
+                <h3 class="font-black text-white text-lg mb-4 flex items-center gap-2"><i class="fa-solid fa-hammer text-yellow-500"></i> CALCULADORA CRAFT</h3>
+                <p class="text-xs text-gray-500 mb-4">Selecione o item para ver os materiais necessários.</p>
+                
+                <select id="iptCraftItem" class="w-full p-3 text-sm font-bold mb-4" onchange="calcCraft()">
+                    <!-- Preenchido via JS -->
+                </select>
+                <div class="flex items-center gap-3 mb-6">
+                    <span class="text-xs font-bold text-gray-400">QUANTIDADE:</span>
+                    <input type="number" id="iptCraftQtd" value="1" min="1" class="flex-1 p-2 text-center font-bold" oninput="calcCraft()">
+                </div>
+
+                <div class="bg-black/50 rounded-lg p-3 border border-gray-800" id="craftResult">
+                    <p class="text-center text-xs text-gray-600">Selecione um item.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ABA METAS (CALCULADORA DE SALÁRIO) -->
+        <div id="tab-metas" class="hidden max-w-md mx-auto fade-in">
+            <div class="card-dark p-6 border-t-4 border-blue-500">
+                <h3 class="font-black text-white text-lg mb-4 flex items-center gap-2"><i class="fa-solid fa-bullseye text-blue-500"></i> CALCULADORA DE META</h3>
+                <p class="text-xs text-gray-500 mb-4">Escolha sua meta ou digite um valor abaixo.</p>
+                
+                <!-- BOTOES DE METAS PREDEFINIDAS -->
+                <div class="grid grid-cols-3 gap-3 mb-6">
+                    <button onclick="setMetaPre(50000)" class="py-2.5 rounded-lg bg-blue-900/40 text-blue-300 font-bold text-[10px] hover:bg-blue-800/50 transition">50 K</button>
+                    <button onclick="setMetaPre(500000)" class="py-2.5 rounded-lg bg-blue-900/40 text-blue-300 font-bold text-[10px] hover:bg-blue-800/50 transition">500 K</button>
+                    <button onclick="setMetaPre(5000000)" class="py-2.5 rounded-lg bg-blue-900/40 text-blue-300 font-bold text-[10px] hover:bg-blue-800/50 transition">5 M</button>
+                </div>
+
+                <div class="relative mb-6">
+                    <span class="absolute left-3 top-3 text-gray-500 font-bold">$</span>
+                    <input type="number" id="iptMeta" placeholder="Digite seu valor aqui" class="w-full p-3 pl-8 text-lg font-black text-white" oninput="calcMeta()">
+                </div>
+
+                <div id="metaResult" class="space-y-2">
+                    <p class="text-center text-xs text-gray-600">Selecione ou digite um valor.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ABA LOGS (LÍDER) -->
+        <div id="tab-logs" class="hidden max-w-md mx-auto fade-in">
+            <div class="card-dark p-4 border-t-4 border-gray-700 min-h-[400px]">
+                <h3 class="font-black text-white text-xs uppercase mb-4"><i class="fa-solid fa-folder-open text-red-600 mr-2"></i> PASTAS DA FACÇÃO</h3>
+                <button onclick="renderLogs()" class="w-full py-2 bg-gray-800 hover:bg-gray-700 rounded text-xs font-bold mb-3"><i class="fa-solid fa-rotate mr-1"></i> ATUALIZAR</button>
+                <div id="foldersContainer" class="space-y-2"></div>
+            </div>
+        </div>
+
+        <!-- ABA AUDITORIA (LOGS DE EDIÇÃO) -->
+        <div id="tab-audit" class="hidden max-w-md mx-auto fade-in">
+            <div class="card-dark p-4 border-t-4 border-orange-600 min-h-[400px]">
+                <h3 class="font-black text-white text-xs uppercase mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-shield-halved text-orange-600"></i> LOGS DE AUDITORIA
+                </h3>
+                <p class="text-[10px] text-gray-500 mb-4">Registro de ações administrativas (Abrir/Fechar loja).</p>
+                <div id="auditContainer" class="space-y-2 max-h-[500px] overflow-y-auto custom-scroll">
+                    <div class="text-center text-xs text-gray-600">Carregando auditoria...</div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- YOUTUBE API -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+
+    <script>
+        // ==============================================
+        // ⚠️ COLE SUAS CHAVES DO FIREBASE AQUI EMBAIXO ⚠️
+        // ==============================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyA_FSghjSwAyhc_r_JrlJ0fJ_joToIjFeU",
+            authDomain: "calculadora-da-fac.firebaseapp.com",
+            projectId: "calculadora-da-fac",
+            appId: "1:998983250246:web:039a737d3f445ba790b547"
+        };
+
+        const APP_ID = 'tb_v48_metas';
+        const SENHA_LIDER = 'tb123';
+
+        // DADOS DE VENDAS
+        const ITENS = [
+            {n:"Lockpick", p:30000, np:40000}, {n:"Masterpick", p:70000, np:80000},
+            {n:"C4", p:10000, np:25000}, {n:"Algema", p:40000, np:50000},
+            {n:"Capuz", p:10000, np:12000}, {n:"Placa", p:30000, np:40000},
+            {n:"Rastreador", p:90000, np:100000}, {n:"Keycard", p:40000, np:50000},
+            {n:"Munição", p:500, np:800}, {n:"Colete", p:5000, np:8000},
+            {n:"Radio", p:2000, np:4000}, {n:"Celular", p:3000, np:4000}
+        ];
+
+        // RECEITAS DE CRAFT (Exemplos)
+        const CRAFT_RECIPES = {
+            "Lockpick": { "Ferro": 10, "Plástico": 5 },
+            "Masterpick": { "Ferro": 20, "Circuito": 2 },
+            "C4": { "Pólvora": 50, "Cabo": 5, "Detonador": 1 },
+            "Algema": { "Aço": 15 },
+            "Capuz": { "Tecido": 10, "Linha": 2 },
+            "Placa": { "Alumínio": 5, "Tinta": 1 },
+            "Colete": { "Kevlar": 10, "Tecido": 5 },
+            "Radio": { "Componente Eletrônico": 5, "Bateria": 1 }
+        };
+
+        // ESTADOS
+        let db, auth;
+        let currentUser = null; 
+        let isStoreOpen = false;
+        let comParceria = true;
+        let player;
+        let currentMetaValue = 0;
+
+        // INICIALIZAÇÃO
+        window.iniciarSistema = async () => {
+            // Player com Playlist
+            if(player) { 
+                player.loadPlaylist({ playlist: ['RkC32nE83Kk', 'Vj9VVJ7bncY'], index: 0, startSeconds: 0 }); 
+                player.setLoop(true); player.playVideo(); 
+            }
+            document.getElementById('startOverlay').style.opacity = '0';
+            setTimeout(()=>document.getElementById('startOverlay').style.display='none', 500);
+
+            // Popula Vendas
+            const sel = document.getElementById('iptItem');
+            ITENS.forEach((i, idx) => { let o = document.createElement('option'); o.value=idx; o.text=i.n; sel.appendChild(o); });
+            
+            // Popula Crafting
+            const selCraft = document.getElementById('iptCraftItem');
+            Object.keys(CRAFT_RECIPES).forEach(key => { let o = document.createElement('option'); o.value=key; o.text=key; selCraft.appendChild(o); });
+            
+            calc(); calcCraft(); calcMeta();
+
+            // Firebase
+            if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+            auth = firebase.auth();
+            db = firebase.firestore();
+            await auth.signInAnonymously();
+            startListeners();
+        };
+
+        function startListeners() {
+            db.collection('artifacts').doc(APP_ID).collection('public').doc('status').onSnapshot(doc => {
+                isStoreOpen = doc.exists ? doc.data().online : false;
+                updateUI();
+            });
+            // Tecla Pânico (F9)
+            document.addEventListener('keydown', (e) => { if(e.key === 'F9') { e.preventDefault(); togglePanic(); } });
+        }
+
+        // UI
+        function updateUI() {
+            const bar = document.getElementById('statusBar');
+            const txt = document.getElementById('statusText');
+            
+            if(isStoreOpen) {
+                bar.className = 'status-bar online';
+                txt.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> ONLINE';
+                txt.className = "text-[9px] font-bold text-green-500 flex items-center gap-1 mt-1";
+            } else {
+                bar.className = 'status-bar offline';
+                txt.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> OFFLINE';
+                txt.className = "text-[9px] font-bold text-red-500 flex items-center gap-1 mt-1";
+            }
+
+            if (!currentUser) {
+                document.getElementById('screen-login').classList.remove('hidden');
+                document.getElementById('tab-vendas').classList.add('hidden');
+                document.getElementById('navBar').classList.add('hidden');
+                document.getElementById('btnLogout').classList.add('hidden');
+            } else {
+                document.getElementById('screen-login').classList.add('hidden');
+                document.getElementById('navBar').classList.remove('hidden');
+                document.getElementById('btnLogout').classList.remove('hidden');
+
+                if(currentUser.role === 'lider') {
+                    document.getElementById('nav-logs').classList.remove('hidden');
+                    document.getElementById('nav-audit').classList.remove('hidden');
+                    document.getElementById('adminControls').classList.remove('hidden');
+                    if(!document.getElementById('tab-vendas').classList.contains('hidden')) {
+                        document.getElementById('screen-closed').classList.remove('hidden');
+                        document.getElementById('screen-sales').classList.add('hidden');
+                    }
+                } else {
+                    document.getElementById('nav-logs').classList.add('hidden');
+                    document.getElementById('nav-audit').classList.add('hidden');
+                    document.getElementById('adminControls').classList.add('hidden');
+
+                    if(!document.getElementById('tab-vendas').classList.contains('hidden')) {
+                        if(isStoreOpen) {
+                            document.getElementById('screen-closed').classList.add('hidden');
+                            document.getElementById('screen-sales').classList.remove('hidden');
+                            document.getElementById('displayVendedor').innerText = currentUser.nome;
+                            document.getElementById('displayID').innerText = currentUser.id;
+                        } else {
+                            document.getElementById('screen-closed').classList.remove('hidden');
+                            document.getElementById('screen-sales').classList.add('hidden');
+                        }
+                    }
+                }
+            }
+        }
+
+        // LOGIN
+        window.setLoginMode = (m) => {
+            document.getElementById('formMembro').className = m==='membro'?'':'hidden';
+            document.getElementById('formLider').className = m==='lider'?'':'hidden';
+            document.getElementById('btnModeMembro').className = m==='membro'?"flex-1 py-2 text-[10px] font-bold rounded bg-red-600 text-white":"flex-1 py-2 text-[10px] font-bold rounded text-gray-500 hover:text-white";
+            document.getElementById('btnModeLider').className = m==='lider'?"flex-1 py-2 text-[10px] font-bold rounded bg-red-600 text-white":"flex-1 py-2 text-[10px] font-bold rounded text-gray-500 hover:text-white";
+        };
+        window.fazerLoginMembro = () => {
+            const nome = document.getElementById('loginName').value.toUpperCase();
+            const id = document.getElementById('loginID').value;
+            if(!nome || !id) return Swal.fire('Preencha tudo', '', 'warning');
+            currentUser = { nome, id, role: 'membro' };
+            nav('vendas'); updateUI();
+        };
+        window.fazerLoginLider = () => {
+            if(document.getElementById('adminPass').value === SENHA_LIDER) {
+                currentUser = { nome: 'LIDER', id: '000', role: 'lider' };
+                nav('vendas'); updateUI(); renderLogs(); renderAudit();
+            } else Swal.fire('Senha incorreta', '', 'error');
+        };
+        window.sairDoSistema = () => { currentUser = null; updateUI(); };
+
+        // PÂNICO
+        window.togglePanic = () => {
+            const s = document.getElementById('panic-screen');
+            s.style.display = s.style.display === 'flex' ? 'none' : 'flex';
+            if(player) { if(s.style.display === 'flex') player.pauseVideo(); else player.playVideo(); }
+        };
+
+        // ADMIN LOJA + LOGS DE AUDITORIA
+        window.setLoja = async (status) => {
+            try {
+                await firebase.firestore().collection('artifacts').doc(APP_ID).collection('public').doc('status').set({ online: status, ts: Date.now() });
+                
+                await firebase.firestore().collection('artifacts').doc(APP_ID).collection('private').doc('audit').collection('logs').add({
+                    action: status ? 'ABRIU LOJA' : 'FECHOU LOJA',
+                    user: 'LIDER',
+                    ts: Date.now()
+                });
+                renderAudit();
+                Swal.fire({toast:true, icon:'success', title: status ? 'LOJA ABERTA' : 'LOJA FECHADA', position:'top', showConfirmButton:false, timer:1500});
+            } catch(e) { console.error(e); }
+        };
+
+        // VENDAS
+        window.setParceria = (val) => { comParceria=val; document.getElementById('btnParceriaSim').className=val?"py-2.5 rounded text-[10px] font-bold bg-red-600 text-white":"py-2.5 rounded text-[10px] font-bold text-gray-500 bg-black/40"; document.getElementById('btnParceriaNao').className=!val?"py-2.5 rounded text-[10px] font-bold bg-red-600 text-white":"py-2.5 rounded text-[10px] font-bold text-gray-500 bg-black/40"; calc(); };
+        window.calc = () => {
+            const idx = document.getElementById('iptItem').value;
+            const qtd = document.getElementById('iptQtd').value || 1;
+            const item = ITENS[idx];
+            const p = comParceria ? item.p : item.np;
+            document.getElementById('iptUnit').value = `$${p.toLocaleString()}`;
+            document.getElementById('valTotal').innerText = `$${(p*qtd).toLocaleString()}`;
+            document.getElementById('valBau').innerText = `$${(p*qtd*0.65).toLocaleString()}`;
+            document.getElementById('valLucro').innerText = `$${(p*qtd*0.35).toLocaleString()}`;
+        };
+        window.confirmarVenda = async () => {
+            const qtd = document.getElementById('iptQtd').value; if(qtd<1) return;
+            const btn = document.getElementById('btnConfirm'); btn.disabled=true; btn.innerText="REGISTRANDO...";
+            const idx = document.getElementById('iptItem').value; const item = ITENS[idx]; const total = (comParceria ? item.p : item.np) * qtd;
+            try {
+                await firebase.firestore().collection('artifacts').doc(APP_ID).collection('public').doc('data').collection('sales').add({
+                    seller: currentUser.nome, id: currentUser.id, item: item.n, qtd: Number(qtd), total: total, ts: Date.now()
+                });
+                document.getElementById('sfx-register').play().catch(()=>{});
+                Swal.fire({icon:'success', title:'Vendido!', timer:1500, showConfirmButton:false, background:'#111', color:'#fff'});
+            } catch(e) {}
+            btn.disabled=false; btn.innerText="REGISTRAR";
+        };
+
+        // CRAFTING
+        window.calcCraft = () => {
+            const item = document.getElementById('iptCraftItem').value;
+            const qtd = document.getElementById('iptCraftQtd').value || 1;
+            const recipe = CRAFT_RECIPES[item];
+            const res = document.getElementById('craftResult');
+            
+            if(!recipe) { res.innerHTML = "Item sem receita."; return; }
+            let html = `<div class="font-bold text-white text-sm mb-2 uppercase">${item} x${qtd}</div>`;
+            for (let mat in recipe) {
+                html += `<div class="craft-row"><span class="text-gray-400">${mat}</span><span class="text-yellow-500 font-mono font-bold">${(recipe[mat] * qtd).toLocaleString()} un</span></div>`;
+            }
+            res.innerHTML = html;
+        };
+
+        // METAS
+        window.setMetaPre = (value) => {
+            document.getElementById('iptMeta').value = value;
+            calcMeta();
+        }
+        window.calcMeta = () => {
+            const meta = document.getElementById('iptMeta').value;
+            const div = document.getElementById('metaResult');
+            div.innerHTML = '';
+            
+            if(!meta || meta <= 0) { div.innerHTML='<p class="text-center text-xs text-gray-600">Selecione ou digite um valor.</p>'; return; }
+            
+            // Pega todos os itens para um cálculo mais real
+            const allItems = ITENS.map(item => ({
+                n: item.n,
+                lucroUnit: item.p * 0.35, // 35% de lucro com parceria
+            })).filter(item => item.lucroUnit > 0);
+
+            let html = '<p class="text-[9px] text-gray-400 mb-2 font-bold uppercase">Itens necessários (Lucro de 35%):</p>';
+            
+            allItems.forEach(item => {
+                const qtdNecessaria = Math.ceil(meta / item.lucroUnit);
+                html += `
+                <div class="flex justify-between items-center bg-black/40 p-2 rounded border-l-2 border-blue-500">
+                    <span class="text-xs font-bold text-gray-400">${item.n}</span>
+                    <span class="text-xs font-mono text-white">Vender <span class="text-blue-400 font-bold">${qtdNecessaria.toLocaleString()}</span> unid.</span>
+                </div>`;
+            });
+            div.innerHTML = html;
+        };
+
+        // LOGS & MEDALHAS
+        window.renderLogs = async () => {
+            if(currentUser?.role !== 'lider') return;
+            const container = document.getElementById('foldersContainer');
+            container.innerHTML = '<div class="text-center text-xs text-gray-600">Carregando...</div>';
+            const snap = await firebase.firestore().collection('artifacts').doc(APP_ID).collection('public').doc('data').collection('sales').orderBy('ts', 'desc').get();
+            const sales = {}; snap.forEach(d => { const v=d.data(); if(!sales[v.seller]) sales[v.seller]=[]; sales[v.seller].push(v); });
+            container.innerHTML = '';
+            
+            Object.keys(sales).forEach(user => {
+                const total = sales[user].reduce((a,b)=>a+b.total,0);
+                let medal = '';
+                if(total >= 5000000) medal = '💎'; // 5 Milhões
+                else if(total >= 1000000) medal = '🥇'; // 1 Milhão
+                else if(total >= 500000) medal = '🥈'; // 500 Mil
+                else if(total >= 100000) medal = '🥉'; // 100 Mil
+
+                container.innerHTML += `
+                <details class="bg-[#161b22] border border-[#333] rounded mb-2">
+                    <summary class="flex justify-between p-3 text-xs font-bold text-gray-300 select-none cursor-pointer">
+                        <span>${medal} ${user}</span> <span class="text-green-500">$${total.toLocaleString()}</span>
+                    </summary>
+                    <div class="bg-black/20 p-2 border-t border-[#333]">
+                        ${sales[user].map(v=>`<div class="flex justify-between text-[10px] text-gray-500 p-1 border-b border-white/5"><span>${v.item} x${v.qtd}</span><span>$${v.total.toLocaleString()}</span></div>`).join('')}
+                    </div>
+                </details>`;
+            });
+        };
+
+        // AUDITORIA
+        window.renderAudit = async () => {
+            if(currentUser?.role !== 'lider') return;
+            const div = document.getElementById('auditContainer');
+            div.innerHTML = '...';
+            const snap = await firebase.firestore().collection('artifacts').doc(APP_ID).collection('private').doc('audit').collection('logs').orderBy('ts', 'desc').limit(20).get();
+            div.innerHTML = '';
+            if(snap.empty) div.innerHTML = '<p class="text-center text-xs text-gray-600">Sem registros.</p>';
+            snap.forEach(d => {
+                const l = d.data();
+                const date = new Date(l.ts).toLocaleString();
+                div.innerHTML += `
+                <div class="flex justify-between items-center bg-black/30 p-2 rounded border-l-2 border-orange-600 mb-1">
+                    <div><p class="text-[10px] font-bold text-white">${l.action}</p><p class="text-[9px] text-gray-500">Por: ${l.user}</p></div>
+                    <div class="text-[9px] text-gray-600">${date}</div>
+                </div>`;
+            });
+        };
+
+        // NAV
+        window.nav = (t) => {
+            ['vendas','craft','metas','logs','audit'].forEach(x => {
+                document.getElementById('tab-'+x).classList.add('hidden');
+                document.getElementById('nav-'+x).classList.replace('bg-red-600','bg-[#111]');
+                document.getElementById('nav-'+x).classList.replace('text-white','text-gray-400');
+            });
+            document.getElementById('tab-'+t).classList.remove('hidden');
+            const active = document.getElementById('nav-'+t);
+            active.classList.replace('bg-[#111]','bg-red-600');
+            active.classList.replace('text-gray-400','text-white');
+            if(t==='logs') renderLogs();
+            if(t==='audit') renderAudit();
+        };
+
+        window.onYouTubeIframeAPIReady = function() { player = new YT.Player('yt-player', { height:'0', width:'0', events:{'onReady':(e)=>e.target.setVolume(40)} }); }
+        window.toggleMusic = () => { if(player) player.getPlayerState()===1 ? player.pauseVideo() : player.playVideo(); }
+        window.setVolume = (v) => { if(player) player.setVolume(v); };
+    </script>
+</body>
+</html>
