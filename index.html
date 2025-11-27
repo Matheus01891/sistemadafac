@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TB | Galaxy Rewards V49</title>
+    <title>TB | Galaxy Rewards V50</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
@@ -109,7 +109,7 @@
     <div id="startOverlay">
         <img src="https://i.postimg.cc/63NWrLF8/8d054157-cfa3-4d6e-b355-709c3b677c07.jpg" class="faction-logo rounded-full border-4 border-red-900" alt="Logo TB">
         <h1 class="text-5xl font-black text-white mb-1 tracking-tighter">TURMA DO <span class="text-red-600">BAIRRO</span></h1>
-        <p class="text-gray-500 text-[10px] tracking-[0.6em] uppercase mb-8">SISTEMA V49 | SECURE</p>
+        <p class="text-gray-500 text-[10px] tracking-[0.6em] uppercase mb-8">SISTEMA V50 | SECURE</p>
         <button class="btn-start" onclick="iniciarSistema()">
             <i class="fa-solid fa-play mr-2"></i> INICIAR
         </button>
@@ -310,7 +310,6 @@
         const APP_ID = 'tb_v48_metas';
         
         // HASH DA SENHA "admin007" (SEGURANÇA NIVEL 5)
-        // Isso impede que alguém veja a senha inspecionando o código
         const HASH_LIDER = "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918";
 
         // DADOS DE VENDAS
@@ -433,11 +432,15 @@
 
         // FUNÇÃO DE HASH PARA SEGURANÇA
         async function sha256(message) {
-            const msgBuffer = new TextEncoder().encode(message);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-            return hashHex;
+            try {
+                const msgBuffer = new TextEncoder().encode(message);
+                const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            } catch (e) {
+                console.error("Erro Crypto:", e);
+                return null;
+            }
         }
 
         // LOGIN
@@ -455,10 +458,23 @@
             nav('vendas'); updateUI();
         };
         
-        // LOGIN LIDER COM VERIFICAÇÃO DE HASH
+        // LOGIN LIDER COM CORREÇÃO ASYNC/AWAIT
         window.fazerLoginLider = async () => {
             const inputPass = document.getElementById('adminPass').value;
+            if (!inputPass) return Swal.fire('Digite a senha', '', 'warning');
+            
             const inputHash = await sha256(inputPass);
+            
+            if(inputHash === null) {
+                // Fallback para caso o navegador bloqueie crypto.subtle (arquivo local)
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Segurança Bloqueada',
+                    text: 'Seu navegador bloqueou a criptografia. Abra este arquivo usando um servidor local ou "Live Server".',
+                    footer: '<a href="#">Por que isso acontece?</a>'
+                });
+                return;
+            }
             
             if(inputHash === HASH_LIDER) {
                 currentUser = { nome: 'LIDER', id: '000', role: 'lider' };
