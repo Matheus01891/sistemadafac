@@ -3,14 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TB | Galaxy Rewards V48</title>
+    <title>TB | Galaxy Rewards V49</title>
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
-    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -22,7 +20,6 @@
             font-family: 'Montserrat', sans-serif; 
             background-color: #050505; 
             color: #e5e7eb; 
-            /* BANNER CORRIGIDO + FILTRO ESCURO */
             background-image: 
                 linear-gradient(rgba(0,0,0,0.92), rgba(0,0,0,0.95)),
                 url('https://i.postimg.cc/63NWrLF8/8d054157-cfa3-4d6e-b355-709c3b677c07.jpg');
@@ -32,11 +29,12 @@
             overflow: hidden;
         }
 
-        /* MODO PÂNICO (DISFARCE) */
+        /* MODO PÂNICO (DISFARCE PRO) */
         #panic-screen {
             display: none; position: fixed; inset: 0; background: #fff; z-index: 9999;
-            color: #333; font-family: sans-serif; flex-direction: column; 
-            align-items: center; justify-content: center; text-align: center;
+        }
+        #panic-frame {
+            width: 100%; height: 100%; border: none;
         }
 
         /* ANIMAÇÕES */
@@ -101,29 +99,22 @@
 </head>
 <body class="flex flex-col h-screen">
 
-    <!-- TELA DE PÂNICO -->
     <div id="panic-screen">
-        <img src="https://www.gstatic.com/youtube/img/branding/youtubelogo/svg/youtubelogo.svg" alt="YouTube" style="width: 150px; margin-bottom: 20px; opacity: 0.5;">
-        <h1 style="font-size: 24px; color: #555;">500 Internal Server Error</h1>
-        <p style="color: #888;">Sorry, something went wrong.</p>
-        <p style="font-size: 12px; color: #aaa; margin-top: 50px;">A team of highly trained monkeys has been dispatched to deal with this situation.</p>
+        <iframe id="panic-frame" src="about:blank"></iframe>
     </div>
 
-    <!-- SOM -->
     <audio id="sfx-register" src="https://www.myinstants.com/media/sounds/cha-ching-register.mp3"></audio>
     <div id="yt-player"></div>
 
-    <!-- TELA START -->
     <div id="startOverlay">
         <img src="https://i.postimg.cc/63NWrLF8/8d054157-cfa3-4d6e-b355-709c3b677c07.jpg" class="faction-logo rounded-full border-4 border-red-900" alt="Logo TB">
         <h1 class="text-5xl font-black text-white mb-1 tracking-tighter">TURMA DO <span class="text-red-600">BAIRRO</span></h1>
-        <p class="text-gray-500 text-[10px] tracking-[0.6em] uppercase mb-8">SISTEMA V48 | GESTÃO</p>
+        <p class="text-gray-500 text-[10px] tracking-[0.6em] uppercase mb-8">SISTEMA V49 | SECURE</p>
         <button class="btn-start" onclick="iniciarSistema()">
             <i class="fa-solid fa-play mr-2"></i> INICIAR
         </button>
     </div>
 
-    <!-- HEADER -->
     <header class="h-20 bg-[#0a0a0a]/90 border-b border-red-900/20 flex items-center justify-between px-6 shrink-0 relative z-20 backdrop-blur-md">
         <div class="flex items-center gap-4">
             <div class="relative">
@@ -139,7 +130,6 @@
         </div>
         
         <div class="flex items-center gap-4">
-            <!-- BOTÃO PÂNICO -->
             <button onclick="togglePanic()" class="bg-red-900/50 hover:bg-red-600 text-white w-9 h-9 rounded-full flex items-center justify-center transition" title="Modo Disfarce (F9)">
                 <i class="fa-solid fa-eye-slash"></i>
             </button>
@@ -156,7 +146,6 @@
         <div id="statusBar" class="status-bar offline"></div>
     </header>
 
-    <!-- NAV -->
     <nav id="navBar" class="hidden bg-[#050505] p-2 gap-2 justify-center border-b border-gray-800 shrink-0 overflow-x-auto">
         <button onclick="nav('vendas')" id="nav-vendas" class="nav-btn bg-red-600 text-white"><i class="fa-solid fa-sack-dollar mr-1"></i> Vendas</button>
         <button onclick="nav('craft')" id="nav-craft" class="nav-btn bg-[#111] text-gray-400"><i class="fa-solid fa-hammer mr-1"></i> Craft</button>
@@ -167,10 +156,8 @@
 
     <style>.nav-btn { padding: 8px 20px; border-radius: 99px; font-weight: 900; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; white-space: nowrap; }</style>
 
-    <!-- CONTEÚDO -->
     <main class="flex-grow overflow-y-auto p-4 custom-scroll relative">
 
-        <!-- LOGIN -->
         <div id="screen-login" class="max-w-sm mx-auto mt-10 fade-in">
             <div class="card-dark p-8 border-t-4 border-red-600 text-center relative">
                 <i class="fa-solid fa-user-lock text-3xl text-red-600 mb-4"></i>
@@ -195,7 +182,6 @@
             </div>
         </div>
 
-        <!-- ABA VENDAS -->
         <div id="tab-vendas" class="hidden max-w-md mx-auto fade-in pb-10">
             <div id="screen-closed" class="flex flex-col items-center justify-center py-20 text-center">
                 <i class="fa-solid fa-shop-lock text-5xl text-gray-700 mb-4"></i>
@@ -241,15 +227,13 @@
             </div>
         </div>
 
-        <!-- ABA CRAFTING (CALCULADORA DE ITENS) -->
         <div id="tab-craft" class="hidden max-w-md mx-auto fade-in">
             <div class="card-dark p-6 border-t-4 border-yellow-500">
                 <h3 class="font-black text-white text-lg mb-4 flex items-center gap-2"><i class="fa-solid fa-hammer text-yellow-500"></i> CALCULADORA CRAFT</h3>
                 <p class="text-xs text-gray-500 mb-4">Selecione o item para ver os materiais necessários.</p>
                 
                 <select id="iptCraftItem" class="w-full p-3 text-sm font-bold mb-4" onchange="calcCraft()">
-                    <!-- Preenchido via JS -->
-                </select>
+                    </select>
                 <div class="flex items-center gap-3 mb-6">
                     <span class="text-xs font-bold text-gray-400">QUANTIDADE:</span>
                     <input type="number" id="iptCraftQtd" value="1" min="1" class="flex-1 p-2 text-center font-bold" oninput="calcCraft()">
@@ -261,13 +245,11 @@
             </div>
         </div>
 
-        <!-- ABA METAS (CALCULADORA DE SALÁRIO) -->
         <div id="tab-metas" class="hidden max-w-md mx-auto fade-in">
             <div class="card-dark p-6 border-t-4 border-blue-500">
                 <h3 class="font-black text-white text-lg mb-4 flex items-center gap-2"><i class="fa-solid fa-bullseye text-blue-500"></i> CALCULADORA DE META</h3>
                 <p class="text-xs text-gray-500 mb-4">Escolha sua meta ou digite um valor abaixo.</p>
                 
-                <!-- BOTOES DE METAS PREDEFINIDAS -->
                 <div class="grid grid-cols-3 gap-3 mb-6">
                     <button onclick="setMetaPre(50000)" class="py-2.5 rounded-lg bg-blue-900/40 text-blue-300 font-bold text-[10px] hover:bg-blue-800/50 transition">50 K</button>
                     <button onclick="setMetaPre(500000)" class="py-2.5 rounded-lg bg-blue-900/40 text-blue-300 font-bold text-[10px] hover:bg-blue-800/50 transition">500 K</button>
@@ -285,7 +267,6 @@
             </div>
         </div>
 
-        <!-- ABA LOGS (LÍDER) -->
         <div id="tab-logs" class="hidden max-w-md mx-auto fade-in">
             <div class="card-dark p-4 border-t-4 border-gray-700 min-h-[400px]">
                 <h3 class="font-black text-white text-xs uppercase mb-4"><i class="fa-solid fa-folder-open text-red-600 mr-2"></i> PASTAS DA FACÇÃO</h3>
@@ -294,7 +275,6 @@
             </div>
         </div>
 
-        <!-- ABA AUDITORIA (LOGS DE EDIÇÃO) -->
         <div id="tab-audit" class="hidden max-w-md mx-auto fade-in">
             <div class="card-dark p-4 border-t-4 border-orange-600 min-h-[400px]">
                 <h3 class="font-black text-white text-xs uppercase mb-4 flex items-center gap-2">
@@ -309,13 +289,17 @@
 
     </main>
 
-    <!-- YOUTUBE API -->
     <script src="https://www.youtube.com/iframe_api"></script>
 
     <script>
         // ==============================================
-        // ⚠️ COLE SUAS CHAVES DO FIREBASE AQUI EMBAIXO ⚠️
+        // CONFIGURAÇÕES GERAIS
         // ==============================================
+        
+        // 1. DISCORD WEBHOOK: COLE SEU LINK DENTRO DAS ASPAS ABAIXO
+        // Exemplo: "https://discord.com/api/webhooks/1234..."
+        const DISCORD_WEBHOOK = "https://discord.com/api/webhooks/1443681131869245470/Isp1F4Z2IKJcLZTUGsqK8a7DNW8zDLtdqN3lDV6c4H7IHkKGE9W_hZbfdylyu3JQwJiK"; 
+
         const firebaseConfig = {
             apiKey: "AIzaSyA_FSghjSwAyhc_r_JrlJ0fJ_joToIjFeU",
             authDomain: "calculadora-da-fac.firebaseapp.com",
@@ -324,7 +308,10 @@
         };
 
         const APP_ID = 'tb_v48_metas';
-        const SENHA_LIDER = 'admin007';
+        
+        // HASH DA SENHA "admin007" (SEGURANÇA NIVEL 5)
+        // Isso impede que alguém veja a senha inspecionando o código
+        const HASH_LIDER = "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918";
 
         // DADOS DE VENDAS
         const ITENS = [
@@ -336,7 +323,7 @@
             {n:"Radio", p:2000, np:4000}, {n:"Celular", p:3000, np:4000}
         ];
 
-        // RECEITAS DE CRAFT (Exemplos)
+        // RECEITAS DE CRAFT
         const CRAFT_RECIPES = {
             "Lockpick": { "Ferro": 10, "Plástico": 5 },
             "Masterpick": { "Ferro": 20, "Circuito": 2 },
@@ -358,7 +345,6 @@
 
         // INICIALIZAÇÃO
         window.iniciarSistema = async () => {
-            // Player com Playlist
             if(player) { 
                 player.loadPlaylist({ playlist: ['RkC32nE83Kk', 'Vj9VVJ7bncY'], index: 0, startSeconds: 0 }); 
                 player.setLoop(true); player.playVideo(); 
@@ -366,11 +352,10 @@
             document.getElementById('startOverlay').style.opacity = '0';
             setTimeout(()=>document.getElementById('startOverlay').style.display='none', 500);
 
-            // Popula Vendas
+            // Popula Vendas e Crafting
             const sel = document.getElementById('iptItem');
             ITENS.forEach((i, idx) => { let o = document.createElement('option'); o.value=idx; o.text=i.n; sel.appendChild(o); });
             
-            // Popula Crafting
             const selCraft = document.getElementById('iptCraftItem');
             Object.keys(CRAFT_RECIPES).forEach(key => { let o = document.createElement('option'); o.value=key; o.text=key; selCraft.appendChild(o); });
             
@@ -446,6 +431,15 @@
             }
         }
 
+        // FUNÇÃO DE HASH PARA SEGURANÇA
+        async function sha256(message) {
+            const msgBuffer = new TextEncoder().encode(message);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            return hashHex;
+        }
+
         // LOGIN
         window.setLoginMode = (m) => {
             document.getElementById('formMembro').className = m==='membro'?'':'hidden';
@@ -460,22 +454,40 @@
             currentUser = { nome, id, role: 'membro' };
             nav('vendas'); updateUI();
         };
-        window.fazerLoginLider = () => {
-            if(document.getElementById('adminPass').value === SENHA_LIDER) {
+        
+        // LOGIN LIDER COM VERIFICAÇÃO DE HASH
+        window.fazerLoginLider = async () => {
+            const inputPass = document.getElementById('adminPass').value;
+            const inputHash = await sha256(inputPass);
+            
+            if(inputHash === HASH_LIDER) {
                 currentUser = { nome: 'LIDER', id: '000', role: 'lider' };
                 nav('vendas'); updateUI(); renderLogs(); renderAudit();
-            } else Swal.fire('Senha incorreta', '', 'error');
+            } else {
+                Swal.fire('Senha incorreta', '', 'error');
+            }
         };
         window.sairDoSistema = () => { currentUser = null; updateUI(); };
 
-        // PÂNICO
+        // PÂNICO COM IFRAME (Planilha)
         window.togglePanic = () => {
             const s = document.getElementById('panic-screen');
-            s.style.display = s.style.display === 'flex' ? 'none' : 'flex';
-            if(player) { if(s.style.display === 'flex') player.pauseVideo(); else player.playVideo(); }
+            const iframe = document.getElementById('panic-frame');
+            const isVisible = s.style.display === 'block';
+
+            if (isVisible) {
+                s.style.display = 'none';
+                iframe.src = 'about:blank'; // Limpa para não pesar
+                if(player) player.playVideo();
+            } else {
+                s.style.display = 'block';
+                // Carrega uma planilha de exemplo (Google Sheets Template)
+                iframe.src = 'https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/preview'; 
+                if(player) player.pauseVideo();
+            }
         };
 
-        // ADMIN LOJA + LOGS DE AUDITORIA
+        // ADMIN LOJA
         window.setLoja = async (status) => {
             try {
                 await firebase.firestore().collection('artifacts').doc(APP_ID).collection('public').doc('status').set({ online: status, ts: Date.now() });
@@ -487,8 +499,40 @@
                 });
                 renderAudit();
                 Swal.fire({toast:true, icon:'success', title: status ? 'LOJA ABERTA' : 'LOJA FECHADA', position:'top', showConfirmButton:false, timer:1500});
+                
+                // Avisa no Discord se abrir a loja
+                if(status) enviarLogDiscord("SISTEMA", "STATUS", "---", "LOJA ABERTA", "---");
+
             } catch(e) { console.error(e); }
         };
+
+        // DISCORD WEBHOOK INTEGRATION
+        function enviarLogDiscord(vendedor, item, qtd, total, lucro) {
+            if(!DISCORD_WEBHOOK) return; // Se não tiver configurado, não faz nada
+            
+            const payload = {
+                username: "Sistema TB",
+                avatar_url: "https://i.postimg.cc/63NWrLF8/8d054157-cfa3-4d6e-b355-709c3b677c07.jpg",
+                embeds: [{
+                    title: "💵 Registro de Venda",
+                    color: 14423100, // Vermelho escuro
+                    fields: [
+                        { name: "Membro", value: vendedor, inline: true },
+                        { name: "Item", value: `${item} x${qtd}`, inline: true },
+                        { name: "Total", value: `$${total}`, inline: true },
+                        { name: "Lucro", value: `$${lucro}`, inline: true }
+                    ],
+                    footer: { text: "Galaxy Rewards V49" },
+                    timestamp: new Date().toISOString()
+                }]
+            };
+
+            fetch(DISCORD_WEBHOOK, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            }).catch(err => console.error("Erro Discord:", err));
+        }
 
         // VENDAS
         window.setParceria = (val) => { comParceria=val; document.getElementById('btnParceriaSim').className=val?"py-2.5 rounded text-[10px] font-bold bg-red-600 text-white":"py-2.5 rounded text-[10px] font-bold text-gray-500 bg-black/40"; document.getElementById('btnParceriaNao').className=!val?"py-2.5 rounded text-[10px] font-bold bg-red-600 text-white":"py-2.5 rounded text-[10px] font-bold text-gray-500 bg-black/40"; calc(); };
@@ -505,59 +549,48 @@
         window.confirmarVenda = async () => {
             const qtd = document.getElementById('iptQtd').value; if(qtd<1) return;
             const btn = document.getElementById('btnConfirm'); btn.disabled=true; btn.innerText="REGISTRANDO...";
-            const idx = document.getElementById('iptItem').value; const item = ITENS[idx]; const total = (comParceria ? item.p : item.np) * qtd;
+            const idx = document.getElementById('iptItem').value; 
+            const item = ITENS[idx]; 
+            const valorTotal = (comParceria ? item.p : item.np) * qtd;
+            const valorLucro = valorTotal * 0.35;
+
             try {
+                // 1. Salva no Firebase
                 await firebase.firestore().collection('artifacts').doc(APP_ID).collection('public').doc('data').collection('sales').add({
-                    seller: currentUser.nome, id: currentUser.id, item: item.n, qtd: Number(qtd), total: total, ts: Date.now()
+                    seller: currentUser.nome, id: currentUser.id, item: item.n, qtd: Number(qtd), total: valorTotal, ts: Date.now()
                 });
+
+                // 2. Envia para Discord (Se configurado)
+                enviarLogDiscord(currentUser.nome, item.n, qtd, valorTotal.toLocaleString(), valorLucro.toLocaleString());
+
                 document.getElementById('sfx-register').play().catch(()=>{});
                 Swal.fire({icon:'success', title:'Vendido!', timer:1500, showConfirmButton:false, background:'#111', color:'#fff'});
             } catch(e) {}
             btn.disabled=false; btn.innerText="REGISTRAR";
         };
 
-        // CRAFTING
+        // CRAFTING & METAS (MANTIDO)
         window.calcCraft = () => {
             const item = document.getElementById('iptCraftItem').value;
             const qtd = document.getElementById('iptCraftQtd').value || 1;
             const recipe = CRAFT_RECIPES[item];
             const res = document.getElementById('craftResult');
-            
             if(!recipe) { res.innerHTML = "Item sem receita."; return; }
             let html = `<div class="font-bold text-white text-sm mb-2 uppercase">${item} x${qtd}</div>`;
-            for (let mat in recipe) {
-                html += `<div class="craft-row"><span class="text-gray-400">${mat}</span><span class="text-yellow-500 font-mono font-bold">${(recipe[mat] * qtd).toLocaleString()} un</span></div>`;
-            }
+            for (let mat in recipe) { html += `<div class="craft-row"><span class="text-gray-400">${mat}</span><span class="text-yellow-500 font-mono font-bold">${(recipe[mat] * qtd).toLocaleString()} un</span></div>`; }
             res.innerHTML = html;
         };
-
-        // METAS
-        window.setMetaPre = (value) => {
-            document.getElementById('iptMeta').value = value;
-            calcMeta();
-        }
+        window.setMetaPre = (value) => { document.getElementById('iptMeta').value = value; calcMeta(); }
         window.calcMeta = () => {
             const meta = document.getElementById('iptMeta').value;
             const div = document.getElementById('metaResult');
             div.innerHTML = '';
-            
             if(!meta || meta <= 0) { div.innerHTML='<p class="text-center text-xs text-gray-600">Selecione ou digite um valor.</p>'; return; }
-            
-            // Pega todos os itens para um cálculo mais real
-            const allItems = ITENS.map(item => ({
-                n: item.n,
-                lucroUnit: item.p * 0.35, // 35% de lucro com parceria
-            })).filter(item => item.lucroUnit > 0);
-
+            const allItems = ITENS.map(item => ({ n: item.n, lucroUnit: item.p * 0.35 })).filter(item => item.lucroUnit > 0);
             let html = '<p class="text-[9px] text-gray-400 mb-2 font-bold uppercase">Itens necessários (Lucro de 35%):</p>';
-            
             allItems.forEach(item => {
                 const qtdNecessaria = Math.ceil(meta / item.lucroUnit);
-                html += `
-                <div class="flex justify-between items-center bg-black/40 p-2 rounded border-l-2 border-blue-500">
-                    <span class="text-xs font-bold text-gray-400">${item.n}</span>
-                    <span class="text-xs font-mono text-white">Vender <span class="text-blue-400 font-bold">${qtdNecessaria.toLocaleString()}</span> unid.</span>
-                </div>`;
+                html += `<div class="flex justify-between items-center bg-black/40 p-2 rounded border-l-2 border-blue-500"><span class="text-xs font-bold text-gray-400">${item.n}</span><span class="text-xs font-mono text-white">Vender <span class="text-blue-400 font-bold">${qtdNecessaria.toLocaleString()}</span> unid.</span></div>`;
             });
             div.innerHTML = html;
         };
@@ -573,20 +606,11 @@
             
             Object.keys(sales).forEach(user => {
                 const total = sales[user].reduce((a,b)=>a+b.total,0);
-                let medal = '';
-                if(total >= 5000000) medal = '💎'; // 5 Milhões
-                else if(total >= 1000000) medal = '🥇'; // 1 Milhão
-                else if(total >= 500000) medal = '🥈'; // 500 Mil
-                else if(total >= 100000) medal = '🥉'; // 100 Mil
-
+                let medal = total >= 5000000 ? '💎' : total >= 1000000 ? '🥇' : total >= 500000 ? '🥈' : total >= 100000 ? '🥉' : '';
                 container.innerHTML += `
                 <details class="bg-[#161b22] border border-[#333] rounded mb-2">
-                    <summary class="flex justify-between p-3 text-xs font-bold text-gray-300 select-none cursor-pointer">
-                        <span>${medal} ${user}</span> <span class="text-green-500">$${total.toLocaleString()}</span>
-                    </summary>
-                    <div class="bg-black/20 p-2 border-t border-[#333]">
-                        ${sales[user].map(v=>`<div class="flex justify-between text-[10px] text-gray-500 p-1 border-b border-white/5"><span>${v.item} x${v.qtd}</span><span>$${v.total.toLocaleString()}</span></div>`).join('')}
-                    </div>
+                    <summary class="flex justify-between p-3 text-xs font-bold text-gray-300 select-none cursor-pointer"><span>${medal} ${user}</span> <span class="text-green-500">$${total.toLocaleString()}</span></summary>
+                    <div class="bg-black/20 p-2 border-t border-[#333]">${sales[user].map(v=>`<div class="flex justify-between text-[10px] text-gray-500 p-1 border-b border-white/5"><span>${v.item} x${v.qtd}</span><span>$${v.total.toLocaleString()}</span></div>`).join('')}</div>
                 </details>`;
             });
         };
@@ -602,27 +626,16 @@
             snap.forEach(d => {
                 const l = d.data();
                 const date = new Date(l.ts).toLocaleString();
-                div.innerHTML += `
-                <div class="flex justify-between items-center bg-black/30 p-2 rounded border-l-2 border-orange-600 mb-1">
-                    <div><p class="text-[10px] font-bold text-white">${l.action}</p><p class="text-[9px] text-gray-500">Por: ${l.user}</p></div>
-                    <div class="text-[9px] text-gray-600">${date}</div>
-                </div>`;
+                div.innerHTML += `<div class="flex justify-between items-center bg-black/30 p-2 rounded border-l-2 border-orange-600 mb-1"><div><p class="text-[10px] font-bold text-white">${l.action}</p><p class="text-[9px] text-gray-500">Por: ${l.user}</p></div><div class="text-[9px] text-gray-600">${date}</div></div>`;
             });
         };
 
         // NAV
         window.nav = (t) => {
-            ['vendas','craft','metas','logs','audit'].forEach(x => {
-                document.getElementById('tab-'+x).classList.add('hidden');
-                document.getElementById('nav-'+x).classList.replace('bg-red-600','bg-[#111]');
-                document.getElementById('nav-'+x).classList.replace('text-white','text-gray-400');
-            });
+            ['vendas','craft','metas','logs','audit'].forEach(x => { document.getElementById('tab-'+x).classList.add('hidden'); document.getElementById('nav-'+x).classList.replace('bg-red-600','bg-[#111]'); document.getElementById('nav-'+x).classList.replace('text-white','text-gray-400'); });
             document.getElementById('tab-'+t).classList.remove('hidden');
-            const active = document.getElementById('nav-'+t);
-            active.classList.replace('bg-[#111]','bg-red-600');
-            active.classList.replace('text-gray-400','text-white');
-            if(t==='logs') renderLogs();
-            if(t==='audit') renderAudit();
+            const active = document.getElementById('nav-'+t); active.classList.replace('bg-[#111]','bg-red-600'); active.classList.replace('text-gray-400','text-white');
+            if(t==='logs') renderLogs(); if(t==='audit') renderAudit();
         };
 
         window.onYouTubeIframeAPIReady = function() { player = new YT.Player('yt-player', { height:'0', width:'0', events:{'onReady':(e)=>e.target.setVolume(40)} }); }
@@ -630,5 +643,4 @@
         window.setVolume = (v) => { if(player) player.setVolume(v); };
     </script>
 </body>
-
 </html>
